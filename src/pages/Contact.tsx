@@ -68,7 +68,7 @@ export default function Contact(): JSX.Element {
       <section
         className="relative h-[55vh] flex items-center justify-center mt-[70px]"
         style={{
-          backgroundImage: `url('cont.jpg')`,
+          backgroundImage: `url('./public/cont.jpg')`,
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
