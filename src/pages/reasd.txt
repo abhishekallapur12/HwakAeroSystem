@@ -1,0 +1,139 @@
+import { Shield, Wifi, Lock, Zap, Cpu, Gauge } from "lucide-react";
+import { motion } from "framer-motion";
+import Footer from "../components/Footer";
+
+export default function Product(): JSX.Element {
+  return (
+    <div className="bg-white text-gray-900 font-light overflow-hidden">
+      {/* ===== Hero Video Section ===== */}
+      <section className="relative h-[90vh] mt-[90px] flex items-center justify-center overflow-hidden">
+        <video
+          className="absolute inset-0 w-full h-full object-cover"
+          src="/videos/dronevid.mp4"
+          autoPlay
+          loop
+          muted
+          playsInline
+        />
+        <div className="absolute inset-0 bg-black/40"></div>
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1 }}
+          className="relative z-10 text-center text-white px-6"
+        >
+          <h1 className="text-4xl md:text-5xl font-semibold mb-2">
+            Agri-Hawk Drone 30
+          </h1>
+          <p className="text-gray-200 text-base md:text-lg max-w-xl mx-auto">
+            A powerful 30L agricultural drone built for precision spraying.
+          </p>
+        </motion.div>
+      </section>
+
+      {/* ===== Technical Specifications Section ===== */}
+     {/* ===== Technical Specifications Section ===== */}
+<section className="relative py-40 px-6 md:px-16 bg-black overflow-hidden">
+  {/* === Grid Background (white/grey lines) === */}
+  <div
+    className="absolute inset-0 opacity-25 pointer-events-none"
+    style={{
+      backgroundImage: `
+        linear-gradient(to right, rgba(255,255,255,0.07) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,0.07) 1px, transparent 1px)
+      `,
+      backgroundSize: "80px 80px",
+    }}
+  ></div>
+
+  {/* Radial soft glow */}
+  <div
+    className="absolute inset-0 pointer-events-none"
+    style={{
+      background:
+        "radial-gradient(circle at center, rgba(255,255,255,0.06) 0%, rgba(0,0,0,1) 80%)",
+    }}
+  ></div>
+
+  <div className="max-w-7xl mx-auto relative">
+    {/* Title */}
+    <div className="text-center mb-20">
+      <h2 className="text-5xl font-semibold text-white mb-4 tracking-wide">
+        Technical Specifications
+      </h2>
+      <p className="text-gray-400 text-sm uppercase tracking-widest">
+        Engineered for Maximum Efficiency and Performance
+      </p>
+    </div>
+
+    {/* Floating Drone Image */}
+    <div className="relative flex justify-center mb-24">
+      <div className="relative group animate-bounce-slow">
+        <img
+          src="/pics/drone4.png"
+          alt="Drone Core Module"
+          className="w-full max-w-2xl transition-all duration-700 group-hover:scale-105"
+        />
+        <div
+          className="absolute inset-0 rounded-full blur-3xl opacity-0 group-hover:opacity-80 transition-opacity duration-700"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 70%)",
+          }}
+        ></div>
+      </div>
+    </div>
+
+    {/* === Spec Icons Row (from your image) === */}
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-10 text-center text-white">
+      {/* 1️⃣ Multifunctional */}
+      <div className="flex flex-col items-center">
+        <img
+          src="/icons/image.png"
+          alt="Multifunctional"
+          className="h-10 mb-4 opacity-90"
+        />
+        <h4 className="font-semibold">Multifunctional</h4>
+        <p className="text-gray-400 text-sm">Spray-Transport Integrated Drone</p>
+      </div>
+
+      {/* 2️⃣ High Efficiency */}
+      <div className="flex flex-col items-center">
+        <img
+          src="/icons/image.png"
+          alt="High Efficiency"
+          className="h-10 mb-4 opacity-90"
+        />
+        <h4 className="font-semibold">High Efficiency</h4>
+        <p className="text-gray-400 text-sm">Max. Flow Rate: 24 L/min</p>
+      </div>
+
+      {/* 3️⃣ Long Range */}
+      <div className="flex flex-col items-center">
+        <img
+          src="/icons/image.png"
+          alt="Long Range"
+          className="h-10 mb-4 opacity-90"
+        />
+        <h4 className="font-semibold">Long Range</h4>
+        <p className="text-gray-400 text-sm">Max. Flight Range: 44.6 km</p>
+      </div>
+
+      {/* 4️⃣ Long Endurance */}
+      <div className="flex flex-col items-center">
+        <img
+          src="/icons/image.png"
+          alt="Long Endurance"
+          className="h-10 mb-4 opacity-90"
+        />
+        <h4 className="font-semibold">Long Endurance</h4>
+        <p className="text-gray-400 text-sm">Max. Flight Time: 62 min</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+      <Footer />
+    </div>
+  );
+}

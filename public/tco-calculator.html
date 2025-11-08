@@ -1,0 +1,716 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Agri-Hawk — TCO Calculator</title>
+
+  <!-- Roboto -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root{
+      --dark-blue:#426995;
+      --light-blue:#2B5881;
+      --accent:#4ECDC4;
+      --muted:#a8c6e6;
+      --white:#ffffff;
+      --panel-bg: rgba(255,255,255,0.04);
+    }
+    *{box-sizing:border-box}
+    body{
+   margin: 0;
+  font-family: 'Roboto', sans-serif;
+  color: var(--white);
+
+  /* Keep your existing gradient */
+  background: 
+    linear-gradient(135deg, var(--light-blue), var(--dark-blue)),
+     repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.05) 0px,
+      rgba(255, 255, 255, 0.05) 1px,
+      transparent 1px,
+      transparent 40px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.05) 0px,
+      rgba(255, 255, 255, 0.05) 1px,
+      transparent 1px,
+      transparent 40px
+    );
+
+  background-blend-mode: overlay;
+  background-attachment: fixed;
+  background-size: cover;
+    }
+    .container{ max-width:1280px; margin:36px auto; padding:18px; }
+    .tco-section{ background:var(--dark-blue); border-radius:14px; padding:30px; }
+    .tco-title{ text-align:center; font-size:30px; margin:0 0 6px; font-weight:700; }
+    .tco-sub{ text-align:center; color:var(--muted); margin:0 0 22px; font-size:14px; }
+
+    .calc-wrap{ display:grid; grid-template-columns:1fr; gap:24px; }
+    @media(min-width:1024px){ .calc-wrap{ grid-template-columns:42% 58%; gap:28px; } }
+
+    .panel{ background:var(--panel-bg); border-radius:12px; padding:18px; border:1px solid rgba(255,255,255,0.06); display:flex; flex-direction:column; gap:14px; }
+
+    label{ display:block; font-size:13px; color:var(--muted); font-weight:600; margin-bottom:6px; }
+    input[type="number"], select{ width:100%; padding:10px; border-radius:8px; border:1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.03); color:var(--white); font-size:14px; }
+    /* ===== CURRENCY SELECT BOX ===== */
+.currency-select-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.currency-select-box select {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--white);
+  font-size: 15px;
+  padding: 10px 14px 10px 44px;
+  appearance: none;
+  outline: none;
+}
+
+.currency-flag {
+  position: absolute;
+  left: 12px;
+  font-size: 20px;
+  pointer-events: none;
+}
+
+    /* Sliders */
+    input[type="range"]{ -webkit-appearance:none; width:100%; height:10px; border-radius:10px; background:rgba(255,255,255,0.22); outline:none; }
+    input[type="range"]::-webkit-slider-thumb{ -webkit-appearance:none; width:22px; height:22px; border-radius:50%; background:#fff; box-shadow:0 6px 12px rgba(0,0,0,0.3); cursor:pointer; border:none; }
+    .ticks{ display:flex; justify-content:space-between; color:var(--muted); font-size:13px; margin-top:8px; }
+
+    .dual-row{ display:flex; gap:16px; }
+    .dual-row > div{ flex:1; min-width:0; }
+
+    .fin-box{ background:rgba(255,255,255,0.1); border-radius:10px; padding:14px; margin-top:12px; text-align:left; }
+    .fin-box .dot{ width:10px; height:10px; border-radius:50%; background:#FFD700; display:inline-block; margin-right:10px; vertical-align:middle; }
+
+    .results-header{ display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.06); padding:10px; border-radius:8px; }
+    .results-body{ display:flex; flex-direction:column; gap:16px; }
+
+    /* ===== PROFIT BOX ===== */
+.profit-box {
+  text-align: center;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 22px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.profit-box .title {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--white);
+  opacity: 0.9;
+  margin-bottom: 6px;
+  letter-spacing: 0.5px;
+}
+
+.profit-box .amount {
+  font-size: 30px;
+  font-weight: 800;
+  color: var(--accent);
+  margin: 2px 0;
+}
+
+.profit-box .meta {
+  color: var(--muted);
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+
+    /* Chart alignment fix */
+    .chart-compare-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-evenly;
+      gap: 30px;
+      margin-top: 20px;
+    }
+
+    .chart-wrap {
+      width: 250px;
+      min-width: 220px;
+      position: relative;
+      flex-shrink: 0;
+      margin: auto;
+    }
+
+    .chart-center{ position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); text-align:center; pointer-events:none; color:var(--muted); }
+    .chart-center .pct{ color:var(--accent); font-weight:800; font-size:20px; }
+
+    .summary-boxes {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: stretch;
+      gap: 16px;
+      flex: 1;
+      min-width: 300px;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    .summary-box {
+      background: rgba(255,255,255,0.06);
+      border-radius: 12px;
+      padding: 14px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-sizing: border-box;
+      min-height: 80px;
+    }
+
+    .summary-left{ display:flex; align-items:center; gap:12px; }
+    .summary-dot{ width:12px; height:12px; border-radius:50%; }
+    .summary-title{ font-size:15px; font-weight:700; color:var(--white); }
+    .summary-value{ font-size:24px; font-weight:800; color:var(--accent); }
+    .summary-note{ font-size:13px; color:var(--muted); text-align:right; }
+
+    /* Under tables (Agri + Trad) */
+    .under-tables { display:flex; gap:18px; margin-top:14px; flex-wrap:wrap; }
+    .under-table { flex:1; min-width:260px; background: rgba(255,255,255,0.06); border-radius:12px; padding:16px; border:1px solid rgba(255,255,255,0.06); }
+    .under-table h4{ margin:0 0 10px; font-size:18px; font-weight:700; }
+    .under-row{ display:flex; justify-content:space-between; color:var(--muted); margin:8px 0; font-size:14px; }
+    .under-row .val{ font-weight:700; color:var(--white); }
+    .under-net{ margin-top:12px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.04); display:flex; justify-content:space-between; font-weight:800; color:var(--accent); font-size:16px; }
+
+    /* Period Projections + Parameters (added back) */
+    .proj-row{ display:flex; gap:12px; flex-wrap:wrap; margin-top:18px; }
+    .proj-card{ flex:1; min-width:160px; background:rgba(255,255,255,0.1); border-radius:10px; padding:14px; text-align:center; border:1px solid rgba(255,255,255,0.06); }
+    .proj-card .amount{ font-size:20px; font-weight:800; color:var(--accent); }
+    .proj-card .label{ color:var(--muted); margin-top:8px; font-size:13px; }
+
+    /* ===== CALCULATION PARAMETERS (One-row layout) ===== */
+.param-card-wrap {
+  background: rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-top: 14px;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+.param-card-wrap .param-title {
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--white);
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.param-card {
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.param-card::-webkit-scrollbar {
+  display: none;
+}
+
+.param-item {
+  text-align: center;
+  min-width: 110px;
+  flex: 1;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.param-item .val {
+  margin-top: 4px;
+  font-weight: 700;
+  color: var(--white);
+  font-size: 14px;
+}
+
+    @media(max-width:1024px){
+      .chart-wrap{ width:230px; }
+      .summary-boxes{ min-width:260px; }
+    }
+    @media(max-width:720px){
+      .chart-compare-row{ flex-direction:column; align-items:center; }
+      .summary-boxes{ width:100%; }
+      .under-tables{ flex-direction:column; }
+    }
+    /* ===== COMPETITOR SECTION ===== */
+.competitor-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin-top: 10px;
+}
+
+.competitor-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.competitor-title {
+  font-weight: 700;
+  color: var(--white);
+  font-size: 16px;
+}
+
+.competitor-sub {
+  color: var(--muted);
+  font-size: 13px;
+  letter-spacing: 0.3px;
+}
+
+.competitor-price {
+  background: #4ECDC4;
+  color: var(--dark-blue);
+  font-weight: 700;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 15px;
+}
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <section class="tco-section" aria-labelledby="tcoHeading">
+      <h1 id="tcoHeading" class="tco-title">TCO Calculator</h1>
+      <p class="tco-sub">Estimate Agri-Hawk profitability and total ownership cost</p>
+
+      <div class="calc-wrap">
+        <!-- LEFT PANEL -->
+        <div class="panel" id="leftPanel">
+          <label>Currency</label>
+          <div class="currency-select-box">
+  <span id="currencyFlag" class="currency-flag">🇺🇸</span>
+  <select id="currencySelect">
+    <option value="USD">USD — United States</option>
+    <option value="EUR">EUR — European Union</option>
+    <option value="GBP">GBP — United Kingdom</option>
+  </select>
+</div>
+
+          <label>Choose an Agri-Hawk Drone *</label>
+          <select id="droneSelect">
+            <option value="drone10">Agri-Hawk Drone 10</option>
+            <option value="drone30">Agri-Hawk Drone 30</option>
+            <option value="drone50">Agri-Hawk Drone 50</option>
+            <option value="drone100">Agri-Hawk Drone 100</option>
+          </select>
+
+          <!-- Choose Competitor Section -->
+<label>Choose Competitor</label>
+<select id="competitorSelect">
+  <option value="manualLabour">Manual Labour</option>
+  <option value="tractorMachine">Tractor / Machine</option>
+  <option value="hawkDrone">Hawk Drone</option>
+</select>
+
+<!-- Competitor Card Display -->
+<div class="competitor-card" id="competitorCard">
+  <div class="competitor-left">
+    <div class="competitor-title" id="competitorTitle">Manual Labour</div>
+    <div class="competitor-sub" id="competitorSub">Cost per acre</div>
+  </div>
+  <div class="competitor-price" id="competitorPrice">$10–12</div>
+</div>
+
+
+          <label>Farm Size (Acres): <span id="distanceLabel" style="color: var(--accent); font-weight:700;">100 Acres</span>
+</label>
+<input id="distance" type="range" min="0" max="100" value="100">
+<div class="ticks">
+  <div>10 acres</div>
+  <div>50 acres</div>
+  <div>100 acres</div>
+</div>
+
+          <label>Ownership Period (Years): <span id="ownershipLabel" style="color:var(--accent);font-weight:700;">5 years</span></label>
+          <input id="ownership" type="range" min="1" max="10" value="5"/>
+          <div class="ticks"><div>1 year</div><div>5 years</div><div>10 years</div></div>
+
+          <h3>Loan & Financing</h3>
+          <div class="dual-row">
+            <div>
+              <label>Annual Interest Rate (%)</label>
+              <input id="interestRate" type="number" value="12" min="0"/>
+            </div>
+            <div>
+              <label>Loan Tenure (months)</label>
+                <select id="loanTenure"><option>6</option><option>12</option><option>18</option><option>24</option> <option>36</option><option>42</option><option>48</option><option>54</option> <option selected>60</option><option>66</option><option>72</option><option>78</option><option>84</option><option>90</option><option>96</option><option>102</option><option>108</option><option>114</option><option>120</option>
+</select> 
+            </div>
+          </div>
+
+          <div class="fin-box">
+            <span class="dot"></span><strong>Financing Summary</strong>
+            <p style="margin:10px 0 0;color:var(--muted);font-size:13px;">
+              Down Payment: 10% of ex-showroom price<br>
+              EMI calculated on remaining 90% amount<br>
+              TCO includes all payments during ownership period
+            </p>
+          </div>
+
+          <h3>Energy Costs</h3>
+          <div class="dual-row">
+            <div>
+              <label>Electricity (<span id="symElec">$</span>/kWh)</label>
+              <input id="electricity" type="number" value="8" min="0"/>
+            </div>
+            <div>
+              <label>Fuel (<span id="symFuel">$</span>/L)</label>
+              <input id="fuel" type="number" value="95" min="0"/>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT PANEL (KEPT EXACTLY AS-IS) -->
+        <div class="panel" id="rightPanel">
+          <div class="results-header">
+            <div style="display:flex;align-items:center;gap:8px">
+              <div style="width:10px;height:10px;border-radius:50%;background:var(--accent)"></div>
+              <div style="font-weight:700">TCO Analysis Results</div>
+            </div>
+            <div id="compareYears" style="color:var(--muted);font-weight:600">Compare over 5 years</div>
+          </div>
+
+          <div class="results-body">
+            <div class="profit-box">
+  <div class="title">EXTRA MONTHLY PROFIT WITH AGRIHAWK</div>
+  <div class="amount" id="extraProfit">+$13,646</div>
+  <div class="meta" id="extraPercent">+66.9% more profit per month</div>
+</div>
+
+
+            <div class="chart-compare-row">
+              <div class="chart-wrap">
+                <canvas id="chart"></canvas>
+                <div class="chart-center"><div class="pct" id="chartPct">+8.8%</div><div style="font-size:13px;color:var(--muted)">Profit Difference</div></div>
+              </div>
+
+              <div class="summary-boxes">
+                <div class="summary-box">
+                  <div class="summary-left">
+                    <div class="summary-dot" style="background:#4ECDC4;"></div>
+                    <div class="summary-title">Agri-Hawk Drone</div>
+                  </div>
+                  <div style="text-align:right">
+                    <div class="summary-value" id="summary_agri_value">$426,604</div>
+                    <div class="summary-note">Monthly Profit with Agri-Hawk</div>
+                  </div>
+                </div>
+
+                <div class="summary-box">
+                  <div class="summary-left">
+                    <div class="summary-dot" style="background:#1B4163;"></div>
+                    <div class="summary-title">Traditional Methods</div>
+                  </div>
+                  <div style="text-align:right">
+                    <div class="summary-value" id="summary_trad_value">$289,494</div>
+                    <div class="summary-note">Monthly Profit with Traditional</div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Under tables -->
+            <div class="under-tables">
+              <div class="under-table" id="under_agri_table">
+                <h4>Agri-Hawk Drone</h4>
+                <div class="under-row"><div>Monthly Earnings</div><div class="val" id="u_agri_earn">$550,000</div></div>
+                <div class="under-row"><div>Monthly EMI</div><div class="val" id="u_agri_emi">-$17,936</div></div>
+                <div class="under-row"><div>Monthly Energy</div><div class="val" id="u_agri_energy">-$22,720</div></div>
+                <div class="under-row"><div>Monthly Maintenance</div><div class="val" id="u_agri_maint">-$7,500</div></div>
+                <div class="under-net"><div>Net Monthly Profit</div><div id="u_agri_net">$501,844</div></div>
+              </div>
+
+              <div class="under-table" id="under_trad_table">
+                <h4>Traditional Method</h4>
+                <div class="under-row"><div>Monthly Earnings</div><div class="val" id="u_trad_earn">$550,000</div></div>
+                <div class="under-row"><div>Monthly EMI</div><div class="val" id="u_trad_emi">-$18,384</div></div>
+                <div class="under-row"><div>Monthly Fuel</div><div class="val" id="u_trad_fuel">-$142,500</div></div>
+                <div class="under-row"><div>Monthly Maintenance</div><div class="val" id="u_trad_maint">-$22,500</div></div>
+                <div class="under-net"><div>Net Monthly Profit</div><div id="u_trad_net">$366,616</div></div>
+              </div>
+            </div>
+
+            <!-- Added below the two tables -->
+            <div class="proj-row">
+              <div class="proj-card"><div class="amount" id="proj_agri_total">$20,42,493</div><div class="label">Total Profit with Agri-Hawk (<span id="projYearsA">5 yrs</span>)</div></div>
+              <div class="proj-card"><div class="amount" id="proj_trad_total">$12,23,717</div><div class="label">Total Profit with Traditional (<span id="projYearsT">5 yrs</span>)</div></div>
+              <div class="proj-card"><div class="amount" id="proj_diff">+$8,18,776</div><div class="label">Overall Profit Difference</div></div>
+            </div>
+
+            <div class="param-card-wrap">
+              <div class="param-title">Calculation Parameters</div>
+              <div class="param-card">
+                <div class="param-item"><div class="label">Currency</div><div class="val" id="param_currency">USD</div></div>
+                <div class="param-item"><div class="label">Ownership Period</div><div class="val" id="param_period">5 yrs</div></div>
+                <div class="param-item"><div class="label">Farm Size</div><div class="val" id="param_distance">100 Acres</div></div>
+                <div class="param-item"><div class="label">Interest Rate</div><div class="val" id="param_interest">12%</div></div>
+                <div class="param-item"><div class="label">Loan Tenure</div><div class="val" id="param_tenure">60 months</div></div>
+              </div>
+            </div>
+          </div><!-- results-body -->
+        </div><!-- rightPanel -->
+      </div><!-- calc-wrap -->
+    </section>
+  </div>
+
+  <!-- ================ Functional JS ================ -->
+<script>
+  // ---- Data / templates (values in USD base) ----
+  const currencyRates = {
+    USD: { rate: 1, symbol: "$", emoji: "🇺🇸" },
+    GBP: { rate: 0.79, symbol: "£", emoji: "🇬🇧" },
+    EUR: { rate: 0.93, symbol: "€", emoji: "🇪🇺" },
+  };
+
+  const droneTemplates = {
+    drone10: { price: 11000, battery: 2000, monthlyEarnings: 3000, monthlyEnergy: 500, monthlyMaintenance: 200, defaultAcres: 10 },
+    drone30: { price: 18000, battery: 4000, monthlyEarnings: 4000, monthlyEnergy: 700, monthlyMaintenance: 300, defaultAcres: 30 },
+    drone50: { price: 22000, battery: 6000, monthlyEarnings: 5000, monthlyEnergy: 900, monthlyMaintenance: 350, defaultAcres: 50 },
+    drone100: { price: 32000, battery: 10000, monthlyEarnings: 6500, monthlyEnergy: 1100, monthlyMaintenance: 400, defaultAcres: 100 }
+  };
+
+  const competitorTemplates = {
+    manualLabour: { title: "Manual Labour", priceMin: 10, priceMax: 12 },
+    tractorMachine: { title: "Tractor / Machine", priceMin: 8, priceMax: 8 },
+    hawkDrone: { title: "Hawk Drone", priceMin: 4, priceMax: 6 }
+  };
+
+  // ---- helpers ----
+  function round(n){ return Math.round(n); }
+  function fmt(n){ if (!isFinite(n) || n === null) return "0"; return Number(n).toLocaleString(); }
+  function formatCurrency(amountUSD, currencyKey){
+    const currency = currencyRates[currencyKey] || currencyRates.USD;
+    const sign = amountUSD < 0 ? "-" : "";
+    const abs = Math.abs(amountUSD) * currency.rate;
+    return sign + currency.symbol + fmt(Math.round(abs));
+  }
+
+  function calcEMI(principalUSD, annualPct, termMonths) {
+    if (!termMonths || termMonths <= 0) return 0;
+    const monthlyRate = (annualPct || 0) / 100 / 12;
+    if (monthlyRate === 0) return principalUSD / termMonths;
+    const v = Math.pow(1 + monthlyRate, termMonths);
+    return principalUSD * monthlyRate * v / (v - 1);
+  }
+
+  // ---- DOM refs ----
+  const dom = {
+    currencySelect: document.getElementById("currencySelect"),
+    currencyFlag: document.getElementById("currencyFlag"),
+    droneSelect: document.getElementById("droneSelect"),
+    competitorSelect: document.getElementById("competitorSelect"),
+    competitorTitle: document.getElementById("competitorTitle"),
+    competitorSub: document.getElementById("competitorSub"),
+    competitorPrice: document.getElementById("competitorPrice"),
+    distance: document.getElementById("distance"),
+    distanceLabel: document.getElementById("distanceLabel"),
+    ownership: document.getElementById("ownership"),
+    ownershipLabel: document.getElementById("ownershipLabel"),
+    loanTenure: document.getElementById("loanTenure"),
+    interestRate: document.getElementById("interestRate"),
+    electricity: document.getElementById("electricity"),
+    fuel: document.getElementById("fuel"),
+    symElec: document.getElementById("symElec"),
+    symFuel: document.getElementById("symFuel"),
+    summary_agri_value: document.getElementById("summary_agri_value"),
+    summary_trad_value: document.getElementById("summary_trad_value"),
+    extraProfit: document.getElementById("extraProfit"),
+    extraPercent: document.getElementById("extraPercent"),
+    chartPct: document.getElementById("chartPct"),
+    compareYears: document.getElementById("compareYears"),
+    proj_agri_total: document.getElementById("proj_agri_total"),
+    proj_trad_total: document.getElementById("proj_trad_total"),
+    proj_diff: document.getElementById("proj_diff"),
+    projYearsA: document.getElementById("projYearsA"),
+    projYearsT: document.getElementById("projYearsT"),
+    param_currency: document.getElementById("param_currency"),
+    param_period: document.getElementById("param_period"),
+    param_distance: document.getElementById("param_distance"),
+    param_interest: document.getElementById("param_interest"),
+    param_tenure: document.getElementById("param_tenure"),
+    u_agri_earn: document.getElementById("u_agri_earn"),
+    u_agri_emi: document.getElementById("u_agri_emi"),
+    u_agri_energy: document.getElementById("u_agri_energy"),
+    u_agri_maint: document.getElementById("u_agri_maint"),
+    u_agri_net: document.getElementById("u_agri_net"),
+    u_trad_earn: document.getElementById("u_trad_earn"),
+    u_trad_emi: document.getElementById("u_trad_emi"),
+    u_trad_fuel: document.getElementById("u_trad_fuel"),
+    u_trad_maint: document.getElementById("u_trad_maint"),
+    u_trad_net: document.getElementById("u_trad_net"),
+  };
+
+  let doughnut;
+  function initChart() {
+    const ctx = document.getElementById("chart").getContext("2d");
+    doughnut = new Chart(ctx, {
+      type: "doughnut",
+      data: { labels: ["Traditional", "Agri-Hawk"], datasets: [{ data:[1,1], backgroundColor:["#1B4163","#4ECDC4"], borderWidth:0 }] },
+      options: { cutout:"70%", plugins:{ legend:{ display:false }, tooltip:{ enabled:false } }, responsive:true, animation:{ duration:300 } }
+    });
+  }
+
+  function recalc() {
+    const currency = dom.currencySelect.value;
+    dom.currencyFlag.textContent = currencyRates[currency].emoji;
+    dom.symElec.textContent = currencyRates[currency].symbol;
+    dom.symFuel.textContent = currencyRates[currency].symbol;
+    dom.param_currency.textContent = currency;
+
+    const droneKey = dom.droneSelect.value;
+    const drone = droneTemplates[droneKey];
+    const compKey = dom.competitorSelect.value;
+    const comp = competitorTemplates[compKey];
+
+    // Auto-adjust farm size according to drone selection
+    if (drone && dom.distance) {
+      dom.distance.value = drone.defaultAcres;
+    }
+
+    if (comp) {
+      dom.competitorTitle.textContent = comp.title;
+      dom.competitorSub.textContent = "";
+      const acres = Number(dom.distance.value) || 0;
+      let priceText = "";
+      if (comp.priceMin === comp.priceMax) {
+        priceText = formatCurrency(comp.priceMin * acres, currency);
+      } else {
+        const minVal = comp.priceMin * acres;
+        const maxVal = comp.priceMax * acres;
+        priceText = formatCurrency(minVal, currency) + " - " + formatCurrency(maxVal, currency);
+      }
+      dom.competitorPrice.textContent = priceText;
+    }
+
+    const acres = Number(dom.distance.value) || 0;
+    dom.distanceLabel.textContent = acres + " Acres";
+    dom.param_distance.textContent = acres + " Acres";
+
+    // Ownership period
+    const years = Number(dom.ownership.value) || 7;
+    dom.ownershipLabel.textContent = years + " years";
+    dom.param_period.textContent = years + " yrs";
+    dom.compareYears.textContent = "Compare over " + years + " years";
+
+    // Auto-adjust loan tenure in months
+    if (dom.loanTenure) {
+      const newTenure = years * 12;
+      dom.loanTenure.value = newTenure;
+      dom.param_tenure.textContent = newTenure + " months";
+    }
+
+    // Interest rate
+    const annualPct = Number(dom.interestRate.value) || 0;
+    dom.param_interest.textContent = annualPct + "%";
+
+    const tenure = Number(dom.loanTenure.value) || 1;
+    const elecRate = Number(dom.electricity.value) || 0;
+    const fuelRate = Number(dom.fuel.value) || 0;
+    const baseAcres = 100;
+
+    const agriMonthlyEarningsUSD = drone.monthlyEarnings * acres / baseAcres;
+    const agriEMIUSD = calcEMI(drone.price * 0.9, annualPct, tenure);
+    const agriEnergyUSD = (drone.monthlyEnergy * acres / baseAcres) * (elecRate / 8);
+    const agriMaintUSD = drone.monthlyMaintenance * (1 + (acres - baseAcres)/baseAcres*0.5);
+
+    const tradPrice = drone.price * 0.95;
+    const tradMonthlyEarningsUSD = drone.monthlyEarnings * acres / baseAcres;
+    const tradEMIUSD = calcEMI(tradPrice * 0.9, annualPct, tenure);
+    const tradFuelUSD = (drone.monthlyEnergy * 6 * acres / baseAcres) * (fuelRate / 95);
+    const tradMaintUSD = drone.monthlyMaintenance * 3 * (1 + (acres - baseAcres)/baseAcres*0.5);
+
+    const agriNetUSD = agriMonthlyEarningsUSD - agriEMIUSD - agriEnergyUSD - agriMaintUSD;
+    const tradNetUSD = tradMonthlyEarningsUSD - tradEMIUSD - tradFuelUSD - tradMaintUSD;
+    const monthlyDiffUSD = agriNetUSD - tradNetUSD;
+    const percentDiff = tradNetUSD !== 0 ? (monthlyDiffUSD / Math.abs(tradNetUSD))*100 : 0;
+
+    if (doughnut) {
+      doughnut.data.datasets[0].data = [Math.max(0.1, Math.abs(tradNetUSD)), Math.max(0.1, Math.abs(agriNetUSD))];
+      doughnut.update();
+    }
+
+    dom.summary_agri_value.textContent = formatCurrency(agriNetUSD, currency);
+    dom.summary_trad_value.textContent = formatCurrency(tradNetUSD, currency);
+    dom.extraProfit.textContent = (monthlyDiffUSD>=0?"+":"") + formatCurrency(Math.abs(monthlyDiffUSD), currency);
+    dom.extraPercent.textContent = (percentDiff>=0?"+":"") + percentDiff.toFixed(1) + "% more profit per month";
+    dom.chartPct.textContent = (percentDiff>=0?"+":"") + percentDiff.toFixed(1) + "%";
+
+    const projAgriTotalUSD = agriNetUSD*12*years;
+    const projTradTotalUSD = tradNetUSD*12*years;
+    const projDeltaUSD = projAgriTotalUSD - projTradTotalUSD;
+    dom.proj_agri_total.textContent = formatCurrency(projAgriTotalUSD, currency);
+    dom.proj_trad_total.textContent = formatCurrency(projTradTotalUSD, currency);
+    dom.proj_diff.textContent = (projDeltaUSD>=0?"+":"") + formatCurrency(Math.abs(projDeltaUSD), currency);
+    dom.projYearsA.textContent = years + " yrs";
+    dom.projYearsT.textContent = years + " yrs";
+
+    dom.u_agri_earn.textContent = formatCurrency(agriMonthlyEarningsUSD, currency);
+    dom.u_agri_emi.textContent = "-" + formatCurrency(agriEMIUSD, currency);
+    dom.u_agri_energy.textContent = "-" + formatCurrency(agriEnergyUSD, currency);
+    dom.u_agri_maint.textContent = "-" + formatCurrency(agriMaintUSD, currency);
+    dom.u_agri_net.textContent = formatCurrency(agriNetUSD, currency);
+
+    dom.u_trad_earn.textContent = formatCurrency(tradMonthlyEarningsUSD, currency);
+    dom.u_trad_emi.textContent = "-" + formatCurrency(tradEMIUSD, currency);
+    dom.u_trad_fuel.textContent = "-" + formatCurrency(tradFuelUSD, currency);
+    dom.u_trad_maint.textContent = "-" + formatCurrency(tradMaintUSD, currency);
+    dom.u_trad_net.textContent = formatCurrency(tradNetUSD, currency);
+  }
+
+  function wireEvents() {
+    const els = [dom.currencySelect, dom.droneSelect, dom.competitorSelect, dom.distance, dom.ownership,
+                 dom.interestRate, dom.loanTenure, dom.electricity, dom.fuel];
+    els.forEach(el => { if(el){ el.addEventListener("input", recalc); el.addEventListener("change", recalc); } });
+
+    // Special: adjust farm size when drone changes
+    dom.droneSelect.addEventListener("change", () => {
+      const drone = droneTemplates[dom.droneSelect.value];
+      if(drone){ dom.distance.value = drone.defaultAcres; recalc(); }
+    });
+
+    // Special: adjust loan tenure automatically when ownership changes
+    dom.ownership.addEventListener("input", () => { 
+      if(dom.loanTenure){ dom.loanTenure.value = dom.ownership.value*12; }
+      recalc(); 
+    });
+  }
+
+  window.addEventListener("DOMContentLoaded", () => {
+    // Set default ownership to 7 years
+    if(dom.ownership){ dom.ownership.value = 7; }
+    initChart();
+    wireEvents();
+    recalc();
+  });
+</script>
+
+</body>
+</html>
